@@ -1,0 +1,11 @@
+# dsh-md-annotator bundle patch
+#
+# Mounted through `dsh plugin --profile web add file:vendor/dsh-md-annotator-<version>.tgz`
+# (the official CLI reconciles dsh.profile.bundles from the installed dependency
+# once it sees this `dsh.bundle.patch` declaration). The row id must stay unique
+# in the composition; the node half is intentionally inert — the feature is a
+# client-side file viewer registered through ctx.betterSidebar (requires the
+# dsh-better-sidebar bundle row to be mounted before this one).
+- insert:
+    - id: md-annotator
+      name: 'dsh-md-annotator'

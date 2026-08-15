@@ -1,0 +1,8 @@
+# Dependencies
+node_modules/
+
+# Local build artifacts
+*.tgz
+
+# macOS
+.DS_Store
