@@ -14,13 +14,26 @@ assert.ok(handoff, "factory handoff registered")
 assert.equal(handoff.id, "dsh-md-annotator")
 
 const stubRequire = (spec) => {
-  if (spec === "react") return { createElement: (type, props, ...children) => ({ type, props, children }) }
+  if (spec === "react") {
+    return {
+      createElement: (type, props, ...children) => ({ type, props, children }),
+      Fragment: "Fragment",
+      Component: class {},
+      memo: (c) => c,
+      useCallback: (fn) => fn,
+      useMemo: (fn) => fn(),
+      useState: (init) => [typeof init === "function" ? init() : init, () => {}],
+      useRef: (init) => ({ current: init }),
+      useEffect: () => {}
+    }
+  }
   throw new Error("unexpected require: " + spec)
 }
 
 const mod = handoff.factory(stubRequire)
 assert.equal(typeof mod.apply, "function", "apply exported")
-assert.ok(Array.isArray(mod.inject) && mod.inject.includes("betterSidebar"), "inject declares betterSidebar")
+assert.ok(Array.isArray(mod.inject), "inject is an array")
+assert.deepEqual(mod.inject, ["betterSidebar", "conversation", "sessions"], "inject declares all consumed services")
 
 const { parseBlocks } = mod._test
 const sample = [
@@ -54,6 +67,7 @@ assert.equal(blocks[1].start, 3)
 assert.equal(blocks[1].end, 3)
 assert.equal(blocks[2].items.length, 2)
 assert.equal(blocks[2].items[0].source, "第一项")
+assert.equal(blocks[2].source, "- 第一项\n- 第二项", "list block carries verbatim source")
 assert.equal(blocks[2].start, 5)
 assert.equal(blocks[2].end, 6)
 assert.equal(blocks[2].items[0].start, 5)
@@ -69,12 +83,13 @@ assert.equal(blocks[5].end, 16)
 const empty = parseBlocks("")
 assert.equal(empty.length, 0, "empty document yields no blocks")
 
+// Continuation indentation is now preserved (not trimmed).
 const hard = parseBlocks("- a\n  续行\n- b")
 assert.equal(hard[0].type, "list")
 assert.equal(hard[0].items.length, 2)
-assert.equal(hard[0].items[0].source, "a\n续行")
+assert.equal(hard[0].items[0].source, "a\n  续行")
 assert.equal(hard[0].items[0].start, 1)
 assert.equal(hard[0].items[0].end, 2)
 assert.equal(hard[0].items[1].start, 3)
 
-console.log("smoke OK: " + blocks.length + " blocks parsed, apply/inject exported")
+console.log("smoke OK: " + blocks.length + " blocks parsed, apply/inject/_test exported")

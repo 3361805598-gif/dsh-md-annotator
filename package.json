@@ -1,6 +1,6 @@
 {
   "name": "dsh-md-annotator",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "DSH web plugin: 在 dsh-better-sidebar 的 Markdown 预览中逐项批注，并将全部批注一键写入对话框，以便对产出内容进行精准修改",
   "type": "module",
   "main": "lib/index.js",
@@ -12,11 +12,24 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "lib",
+    "lib/index.js",
+    "lib/client.js",
     "cordis.patch.yml",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
+  "scripts": {
+    "build": "node scripts/bundle.mjs",
+    "prepack": "node scripts/bundle.mjs",
+    "test": "node test/smoke.mjs && node test/unit.mjs",
+    "pack": "pnpm pack --pack-destination dist",
+    "clean": "node -e \"const fs=require('fs');for(const f of fs.readdirSync('.')){if(f.endsWith('.tgz'))fs.unlinkSync(f)}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/3361805598-gif/dsh-md-annotator"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",

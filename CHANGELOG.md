@@ -2,6 +2,30 @@
 
 本插件版本演进记录。版本号遵循语义化版本（SemVer）。
 
+## [0.5.0] - 2026-08-20
+
+基于三视角代码审查（见 REVIEW-REPORT.md）的整改版本：拆模块、优化渲染、冻结 ref 契约、存储有界化、补测试与 CI。
+
+### Changed
+
+- **模块拆分**：`lib/client.js` 单体（1101 行）按职责拆为 `lib/src/{styles,store,parser,selection,panel,viewer,entry}.js`，由零依赖拼接脚本 `scripts/bundle.mjs` 合并为单文件（仍为无打包器、直发的 factory 格式）；`pnpm pack` 经 `prepack` 自动重新拼接，产物输出到 `dist/`。
+- **渲染性能**：批注编辑器下沉为独立子组件（草稿本地 state，逐键输入不再重建整棵块树）；块级渲染预构建 `ref→notes` Map 与 `selectedIds` Set，消除 O(块×批注) 线性扫描；块/批注列表组件 `React.memo` + `useCallback` 稳定回调；面板拖拽/缩放改 ref 存几何 + `requestAnimationFrame` 节流、pointerup 一次性持久化；窗口 resize 节流；Escape 监听注册一次。
+- **ref 契约版本化**：批注引用由 `i[:j]` 升级为 `v1:b:i:<sig>` / `v1:i:i:j:<sig>`（sig 为「前块+本块+后块」邻接上下文签名）；文件重生成后按「原文 + 上下文签名」重锚定，同名块不会静默错挂，失配保守标注「原文已变化」；旧格式引用兼容解码并盖版本戳。
+- **解析器修正**：列表块补 `source`（符合"每块携带原文"契约）；列表项续行缩进不再被 trim（代码缩进保留）；`a|b\n---` 不再误判为表格。
+- **存储有界化**：批注/面板偏好存储改为带 LRU 淘汰与 per-key 上限的工厂类（每次激活一实例，非模块级单例）；清空/发送后清空改为删除键；note 加 `v:1` schema 版本与正文长度上限；新增 JSON 导出按钮。
+- **健壮性**：查看器外层包 ErrorBoundary（渲染异常降级为"预览出错 + 恢复"而非拖垮侧边栏）；设置读取/setPointerCapture/sessions.scope 等吞错处补 `console.debug` 日志；`inject` 显式声明 `betterSidebar/conversation/sessions`，发送路径改走 `props.ctx`（去掉模块级 ctx 全局）。
+- **选区偏移解耦**：可批注内容隔离到专用 `.mdan-content` 子树，选区偏移只对内容子树计算，批注增删不再使存量选区偏移漂移。
+- **面板几何集中**：默认宽高/最小尺寸/边距等魔数收敛为 `PANEL_DEFAULTS/PANEL_MIN/PANEL_MARGIN` + 单一 `clampPanel`。
+- **小修**：批注 id 改 `crypto.randomUUID()`（带回退）；`new Highlight(...ranges)` 取代 bind.apply 写法；组件内 `var` 改 `const/let`；`DEFAULT_KIND` 常量、`kindLabel` 兜底从 `KIND_LABELS.suggest` 派生；空批注不再静默关闭编辑器（提示"批注内容为空"）；Escape 在宿主输入框内不误关浮层；图标按钮补 `aria-label`。
+
+### Removed
+
+- 列表块的"整块批注"入口（列表只做逐项批注）：旧行为会给整块引用写入 `source=undefined`，属潜在缺陷，现已移除。
+
+### Added
+
+- `scripts/bundle.mjs`、`test/unit.mjs`、`.github/workflows/ci.yml`（node 20/22）；`package.json` 补 `scripts/build/test/pack/clean`、`repository`、显式 `files` 白名单（不再发布 `lib/src`/`scripts`/`test`）。
+
 ## [0.4.2] - 2026-08-18
 
 ### Changed
