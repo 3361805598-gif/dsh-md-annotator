@@ -1,6 +1,6 @@
 {
   "name": "dsh-md-annotator",
-  "version": "0.3.4",
+  "version": "0.4.2",
   "description": "DSH web plugin: 在 dsh-better-sidebar 的 Markdown 预览中逐项批注，并将全部批注一键写入对话框，以便对产出内容进行精准修改",
   "type": "module",
   "main": "lib/index.js",
