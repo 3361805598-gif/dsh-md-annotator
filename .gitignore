@@ -6,3 +6,6 @@ node_modules/
 
 # macOS
 .DS_Store
+
+# Local review artifacts (not published to GitHub)
+REVIEW-REPORT.md
