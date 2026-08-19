@@ -24,7 +24,7 @@
 
 ### Added
 
-- `scripts/bundle.mjs`、`test/unit.mjs`、`.github/workflows/ci.yml`（node 20/22）；`package.json` 补 `scripts/build/test/pack/clean`、`repository`、显式 `files` 白名单（不再发布 `lib/src`/`scripts`/`test`）。
+- `scripts/bundle.mjs`、`test/unit.mjs`；`package.json` 补 `scripts/build/test/pack/clean`、`repository`、显式 `files` 白名单（不再发布 `lib/src`/`scripts`/`test`）。
 
 ## [0.4.2] - 2026-08-18
 

@@ -49,8 +49,6 @@ node test/unit.mjs        # 纯函数单测（解析器 / 内联渲染 / ref 编
 npm test                  # 依次跑上面两个测试
 ```
 
-GitHub Actions（node 20/22）会在每次提交时重新拼接并校验 `lib/client.js` 与提交一致，再跑全部测试。
-
 ## 卸载 / 停用
 
 - 临时停用：侧边栏「设置页 → 侧边卡片」中关闭 `md-annotator` 条目，内置 Markdown 预览立即恢复；
