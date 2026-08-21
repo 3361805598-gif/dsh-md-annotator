@@ -54,7 +54,7 @@ const TAIL = `    return module.exports
 const parts = []
 for (const name of ORDER) {
   const body = readFileSync(resolve(srcDir, name), "utf8")
-  const indented = body.split("\n").map((line) => "    " + line).join("\n")
+  const indented = body.split("\n").map((line) => line === "" ? "" : "    " + line).join("\n")
   parts.push(`    //#region src/${name}\n${indented}\n    //#endregion`)
 }
 

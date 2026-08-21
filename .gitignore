@@ -4,6 +4,9 @@ node_modules/
 # Local build artifacts
 *.tgz
 
+# Local package-manager metadata
+pnpm-lock.yaml
+
 # macOS
 .DS_Store
 
