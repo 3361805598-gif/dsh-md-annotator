@@ -23,6 +23,28 @@
 
 前置：Node ≥ 20、pnpm ≥ 10，`dsh web` 可正常运行。
 
+### 安装发布版（推荐）
+
+```sh
+curl -L -o dsh-md-annotator-0.6.0.tgz \
+  https://github.com/3361805598-gif/dsh-md-annotator/releases/download/v0.6.0/dsh-md-annotator-0.6.0.tgz
+shasum -a 256 dsh-md-annotator-0.6.0.tgz
+
+mkdir -p ~/.dsh/profiles/web/vendor
+cp dsh-md-annotator-0.6.0.tgz ~/.dsh/profiles/web/vendor/
+dsh plugin --profile web add file:vendor/dsh-md-annotator-0.6.0.tgz
+```
+
+`v0.6.0` 安装包的 SHA-256 应为：
+
+```text
+7e389c52e9ec65f6864b766fe39e586c67d5df80fa94fdd26cf7cfc18c9fff08
+```
+
+安装后重启 `dsh web`，再硬刷新浏览器（Cmd/Ctrl+Shift+R）。
+
+### 从源码打包
+
 ```sh
 # 1. 打包（在包目录内；prepack 会自动重新拼接 lib/client.js，产物落到 dist/）
 pnpm pack         # 产出 dist/dsh-md-annotator-<version>.tgz
