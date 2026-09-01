@@ -2,6 +2,14 @@
 
 本插件版本演进记录。版本号遵循语义化版本（SemVer）。
 
+## [0.6.1] - 2026-09-02
+
+适配 dsh harness 0.1.2-alpha.4。经逐触点核验（`__ModuleLoader__.load` factory 形态、`inject` 三服务、`registerFileViewer` 契约、`sessions.scope`/`conversation.input` 写回链路、`/sidebar/api/fs.write` 路由），**功能层面零代码改动即兼容**，本版仅纠正代码内过时注释。
+
+### Changed
+
+- 纠正 `scripts/bundle.mjs` 头注释与生成产物头部注释中的分发方式描述：dsh 0.1.2-alpha.4 起 client bundle 改为 combo URL（`/plugins/??<id>/client.js,…&rev=<hash>`）分发，裸路径 `/plugins/dsh-md-annotator/client.js` 404 属预期设计（仅作 source-map 回退名保留），原"原样下发在该裸路径"的说法会误导排错。
+
 ## [0.6.0] - 2026-08-21
 
 - 新增 Markdown 源码编辑模式：可在侧边栏预览/源码之间切换，支持 Cmd/Ctrl+S 与宿主保存按钮写回原 Markdown 文件。
