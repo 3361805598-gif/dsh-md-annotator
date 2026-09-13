@@ -8,6 +8,7 @@ globalThis.window = {
 await import(new URL("../lib/client.js", import.meta.url).href)
 
 const stubRequire = (spec) => {
+  if (spec === "react-dom") return { createPortal: child => child }
   if (spec === "react") {
     return {
       createElement: (type, props, ...children) => ({ type, props, children }),

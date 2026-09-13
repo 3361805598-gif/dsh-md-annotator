@@ -1,7 +1,7 @@
 {
   "name": "dsh-md-annotator",
-  "version": "0.6.1",
-  "description": "DSH web plugin: 在 dsh-better-sidebar 的 Markdown 预览中逐项批注，并将全部批注一键写入对话框，以便对产出内容进行精准修改",
+  "version": "0.9.0",
+  "description": "基于 The Better Sidebar 的 Markdown 预览、源码编辑与批注插件",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -22,7 +22,7 @@
   "scripts": {
     "build": "node scripts/bundle.mjs",
     "prepack": "node scripts/bundle.mjs",
-    "test": "node test/smoke.mjs && node test/unit.mjs",
+    "test": "node test/smoke.mjs && node test/unit.mjs && node test/integration.mjs && node test/host.mjs",
     "pack": "pnpm pack --pack-destination dist",
     "clean": "node -e \"const fs=require('fs');for(const f of fs.readdirSync('.')){if(f.endsWith('.tgz'))fs.unlinkSync(f)}\""
   },
@@ -33,7 +33,6 @@
   "keywords": [
     "dsh",
     "dsh-plugin",
-    "dsh-better-sidebar",
     "markdown",
     "annotation",
     "deepseek-harness"
@@ -50,5 +49,13 @@
     }
   },
   "license": "MIT",
-  "author": "lawyer_cui"
+  "author": "lawyer_cui",
+  "peerDependencies": {
+    "dsh-better-sidebar": ">=0.19.1 <0.20.0"
+  },
+  "peerDependenciesMeta": {
+    "dsh-better-sidebar": {
+      "optional": true
+    }
+  }
 }

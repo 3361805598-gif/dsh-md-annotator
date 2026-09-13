@@ -14,6 +14,7 @@ assert.ok(handoff, "factory handoff registered")
 assert.equal(handoff.id, "dsh-md-annotator")
 
 const stubRequire = (spec) => {
+  if (spec === "react-dom") return { createPortal: child => child }
   if (spec === "react") {
     return {
       createElement: (type, props, ...children) => ({ type, props, children }),
@@ -33,7 +34,7 @@ const stubRequire = (spec) => {
 const mod = handoff.factory(stubRequire)
 assert.equal(typeof mod.apply, "function", "apply exported")
 assert.ok(Array.isArray(mod.inject), "inject is an array")
-assert.deepEqual(mod.inject, ["betterSidebar", "conversation", "sessions"], "inject declares all consumed services")
+assert.deepEqual(mod.inject, ["betterSidebar", "remote", "remote.workspaceFiles", "conversation", "sessions"], "inject declares all consumed services")
 
 const { parseBlocks } = mod._test
 const sample = [

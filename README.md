@@ -1,88 +1,85 @@
 # dsh-md-annotator
 
-在 [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar) 的 Markdown 预览中**逐项批注**，并把全部批注一键整理成结构化修改指令写入聊天对话框，以便对产出内容进行精准修改。
+面向 DeepSeek Harness Web UI 的 Markdown 批注插件。通过 The Better Sidebar 打开 `.md` / `.markdown` 文件后，可进行 Markdown 预览、块级批注、选区批注、源码编辑、保存和批注报告整理。0.9.0 起重新接入 `dsh-better-sidebar`，由其负责文件路由与面板承载。
 
 ## 功能
 
-- 在侧边栏直接切换「预览」与「源码编辑」模式；源码编辑支持 Cmd/Ctrl+S 或宿主保存按钮写回原 Markdown 文件，并与现有批注预览、better-sidebar 合并工具栏兼容；
+- 通过 The Better Sidebar 打开 Markdown 文件，切换「预览」与「源码」模式；源码支持 Cmd/Ctrl+S 保存；
+- 解析标题、段落、列表项（逐项）、表格、代码块、引用和水平线；支持常用内联 Markdown；
+- 悬停块或列表项后添加批注，也可以在同一段落或列表项内选中文字添加选区批注；批注支持「必须改 / 建议改 / 疑问」类型；
+- 批注以右侧卡片显示，按原文位置排列并自动避让；橙色虚线从被批注的文字或段落连接到对应卡片，悬停时加粗；支持原文引用、复制、编辑、删除及单条写入草稿。保留批注高亮、计数和可拖动的批注清单，支持清空和 JSON 导出；
+- 批注栏与正文一起滚动，侧栏宽度变化时重新排列；窄侧栏可横向滚动，也可使用官方分栏放大或全屏查看；
+- 将全部、所选或单条批注整理为结构化报告，写入该文件所属会话的输入框草稿，不自动发送；
+- 独立设置「增强预览」「写入草稿后清空批注」和「报告前缀」；设置保存在本插件自己的版本化 localStorage 空间；
+- 文件重新生成后按块内容与邻接上下文重定位批注，失配项标记为「原文已变化」；
+- 同一会话和文件的多个视图共享文档草稿、版本和批注；不同会话隔离。
 
-- 打开任意 `.md` 文件（侧边栏预览）时，把文档解析为块：标题、段落、列表项（逐项）、表格、代码块、引用、水平线；
-- 悬停任意块 / 列表项 → 「＋批注」→ 内联填写修改意见（支持增/改/删，一处可多条），并可给批注打**类型标签**（必须改 / 建议改 / 疑问）；
-- **选中任意文字批注**：在预览里拖选不限字数的文字（需在同一个段落/列表项内）→ 浮出「＋批注选区」→ 填写意见；被选中的文字会持续高亮（CSS Custom Highlight API），批注引用精确到选中的字句而非整块；
-- 已批注块显示琥珀色左边框 + 计数角标；底部固定栏显示总数（**可点手柄 `﹀` 收起 / `︿` 展开**），并可展开「批注清单」悬浮面板（**可拖动位置（可拖出侧边栏到页面任意位置）、可调整大小**、单条移除、一键清空），点击跳转定位；
-- 点「全部发送」→ 当前会话输入框草稿写入结构化指令（按类型分组：文件路径 + 行号 + 原文引用 + 批注），回车即可发送给模型；清单内可逐条发送或勾选后批量发送；
-- **设置页集成**：侧边栏「设置 → 侧边卡片」中可整体开关本预览器，并可配置「发送后自动清空批注」（**默认开启**）与「发送内容前缀」；
-- 文件被重新生成时，按「块序号 + 原文」重匹配批注，失配项标注「原文已变化」，仍可按引文定位发送。
+## 依赖与兼容
 
-## 依赖
-
-- DSH web profile；
-- 已挂载 `dsh-better-sidebar`（本插件通过其 `ctx.betterSidebar` 服务注册 viewer）。未挂载时本插件行将一直等待服务而不会激活。
+- DSH Web profile；
+- `dsh-better-sidebar >=0.19.1 <0.20.0`，以及 DSH `0.1.5-rc.1+`；旧 alpha 环境需先升级；
+- Node.js ≥ 20，pnpm ≥ 10（仅用于源码构建、测试和打包）；
+- 通过 `ctx.betterSidebar.registerFileViewer` 注册 Markdown 预览器，优先级 20；右侧栏与底部工作台共用；
+- Better Sidebar 声明为 optional peer，避免重复实例；客户端通过 inject 等待其服务，未安装或被禁用时不激活预览器。
 
 ## 安装
 
-前置：Node ≥ 20、pnpm ≥ 10，`dsh web` 可正常运行。
+前置：已安装可正常运行的 DSH Web profile 和上述兼容版本的 The Better Sidebar。
 
-### 安装发布版（推荐）
+### 从本地 tgz 安装
+
+仓库当前不提供已发布下载地址。先在项目目录打包，再把生成的 tgz 放入 Web profile 的 `vendor` 目录：
 
 ```sh
-curl -L -o dsh-md-annotator-0.6.0.tgz \
-  https://github.com/3361805598-gif/dsh-md-annotator/releases/download/v0.6.0/dsh-md-annotator-0.6.0.tgz
-shasum -a 256 dsh-md-annotator-0.6.0.tgz
-
+cd dsh-md-annotator
+pnpm run pack
 mkdir -p ~/.dsh/profiles/web/vendor
-cp dsh-md-annotator-0.6.0.tgz ~/.dsh/profiles/web/vendor/
-dsh plugin --profile web add file:vendor/dsh-md-annotator-0.6.0.tgz
-```
-
-`v0.6.0` 安装包的 SHA-256 应为：
-
-```text
-7e389c52e9ec65f6864b766fe39e586c67d5df80fa94fdd26cf7cfc18c9fff08
-```
-
-安装后重启 `dsh web`，再硬刷新浏览器（Cmd/Ctrl+Shift+R）。
-
-### 从源码打包
-
-```sh
-# 1. 打包（在包目录内；prepack 会自动重新拼接 lib/client.js，产物落到 dist/）
-pnpm pack         # 产出 dist/dsh-md-annotator-<version>.tgz
-
-# 2. 放入 profile 的 vendor 目录
 cp dist/dsh-md-annotator-<version>.tgz ~/.dsh/profiles/web/vendor/
-
-# 3. 安装并自动挂载（官方 CLI 会协调 dsh.profile.bundles）
 dsh plugin --profile web add file:vendor/dsh-md-annotator-<version>.tgz
-
-# 4. 重启 dsh web，然后硬刷新浏览器（Cmd/Ctrl+Shift+R）
 ```
 
-## 更新
+安装后重启 `dsh web`，并在浏览器中硬刷新（Cmd/Ctrl+Shift+R）。安装时应使用与实际文件名一致的版本号；本 README 不预设下载链接或校验值。
 
-改完代码后：`pnpm pack` → 覆盖 `~/.dsh/profiles/web/vendor/` 下的 tgz（或放新版本号）→ 重新执行 `dsh plugin --profile web add file:vendor/...` → 重启 `dsh web` + 硬刷新。
+### 更新
 
-## 开发与测试
+修改代码后重新执行 `pnpm run pack`，将新的 tgz 放入 `~/.dsh/profiles/web/vendor/`，再次执行 `dsh plugin --profile web add file:vendor/dsh-md-annotator-<version>.tgz`，然后重启 `dsh web` 并硬刷新浏览器。
 
-源码按职责拆在 `lib/src/`（styles / store / parser / selection / panel / viewer / entry），由零依赖拼接脚本 `scripts/bundle.mjs` 合并为单文件 `lib/client.js`（仍为无打包器、直发的 `__ModuleLoader__` factory 形式）。修改源码后需重新拼接：
+## 开发、测试与打包
+
+源码位于 `lib/src/`，由 `scripts/bundle.mjs` 拼接为 `lib/client.js`。在插件目录执行：
 
 ```sh
-node scripts/bundle.mjs   # 重新生成 lib/client.js（pnpm pack 会经 prepack 自动执行）
-node test/smoke.mjs       # 工厂物化 + 块解析冒烟
-node test/unit.mjs        # 纯函数单测（解析器 / 内联渲染 / ref 编解码 / 重锚定 / 报告 / 存储有界）
-npm test                  # 依次跑上面两个测试
+pnpm install
+pnpm build       # 重新生成 lib/client.js
+pnpm test        # 运行 smoke、unit、integration、host 测试
+pnpm run pack        # prepack 自动构建，产出 dist/dsh-md-annotator-<version>.tgz
 ```
 
-## 卸载 / 停用
+也可以分别运行：
 
-- 临时停用：侧边栏「设置页 → 侧边卡片」中关闭 `md-annotator` 条目，内置 Markdown 预览立即恢复；
-- 完全卸载：`dsh plugin --profile web remove dsh-md-annotator`（bundle 协调会自动移除层栈条目）→ 重启 `dsh web`。
+```sh
+node test/smoke.mjs
+node test/unit.mjs
+```
 
-## 说明与限制
+测试覆盖模块物化、解析、内联渲染、引用编解码、批注重锚定、报告和有界存储等行为；真实 DSH 浏览器集成仍应在目标版本的独立测试 profile 中验收。
 
-- 批注保存在浏览器内存中：切换 Tab / 会话不丢失，但重启 DSH 或停用插件后清空；清单面板与底部栏提供「导出」按钮，可把当前文件全部批注下载为 JSON 备份（localStorage 持久化与拖拽排序为后续演进方向）；
-- 插件运行期间会接管 `.md` 文件的侧边栏预览（内置预览的编辑模式不可用），停用后自动恢复；
-- UI 为全中文，无 i18n 层（个人插件定位）；
-- 内联 Markdown 解析器为 **CommonMark 子集**：支持 ATX 标题、段落、列表（逐项）、表格、代码围栏、引用、水平线，以及 `` `code` `` / `**粗体**` / `*斜体*` / `~~删除线~~` / `[文本](链接)` 内联语法；**不支持** setext 标题、嵌套列表（缩进子项按续行拍平）、内联 HTML、列表项内代码围栏/引用、表格单元格转义管道符；
-- 批注引用为**版本化 + 内容/邻接上下文签名**的 `v1:…` 格式，文件重生成后按「原文 + 上下文签名」重锚定，同名块不会静默错挂；失配项标注「原文已变化」；
-- 无构建链：`lib/client.js` 为 `scripts/bundle.mjs` 从 `lib/src/*.js` 拼接出的 `__ModuleLoader__.load` factory 格式，由 `/plugins/dsh-md-annotator/client.js` 直接下发；`lib/index.js` 为 no-op 宿主半（功能纯客户端）。
+## 保存、冲突和生命周期限制
+
+- 单文件完整读取上限为 **2 MiB**。超限文件不会以截断内容进入可保存编辑器；
+- 保存使用官方文件版本条件。外部修改导致版本冲突时保留本地源码草稿并提示处理，不自动覆盖；
+- 文件草稿、批注和视图状态保存在本次插件运行期内；刷新、重启 DSH 或停用插件前应先保存源码并导出批注 JSON；
+- 本插件不提供批注持久化、JSON 导入、富文本编辑、完整 GFM 或自动发送；
+- 卸载时撤销 viewer 注册，重新打开文件后由 Better Sidebar 内置预览接管；
+- 每 3 秒检查文件版本，保护未保存草稿；未保存标记显示在编辑器内；
+- 停用或卸载：
+
+```sh
+dsh plugin --profile web remove dsh-md-annotator
+```
+
+## 解析与引用说明
+
+内联解析器为 CommonMark 子集，支持 ATX 标题、段落、列表、表格、代码围栏、引用、水平线，以及 `` `code` ``、`**粗体**`、`*斜体*`、`~~删除线~~` 和 `[文本](链接)`。不支持 setext 标题、嵌套列表、内联 HTML、列表项内代码围栏或引用、表格单元格转义管道符。
+
+批注引用采用版本化 `v1:…` 格式，包含内容和邻接上下文签名。文件重新生成后按原文与上下文重锚定，同名块不会静默错挂；无法匹配时保留批注并标记「原文已变化」。

@@ -23,7 +23,12 @@ const ORDER = [
   "parser.js",
   "selection.js",
   "panel.js",
+  "files.js",
+  "documents.js",
+  "toolbar.js",
+  "blocks.js",
   "viewer.js",
+  "sidebar.js",
   "entry.js"
 ]
 
@@ -35,12 +40,7 @@ const HEAD = `// dsh-md-annotator client half
 // \`/plugins/??<id>/client.js,...&rev=<hash>\` — since dsh 0.1.2-alpha.4 a bare
 // /plugins/dsh-md-annotator/client.js path 404s by design (combo-only
 // distribution; the bare path survives only as a source-map fallback name).
-// It registers a Markdown file viewer
-// through the \`betterSidebar\` service (provided by dsh-better-sidebar) with
-// priority 10 — above the built-in markdown viewer (0) — so every .md preview
-// in the sidebar becomes a block-level annotation surface. Annotations are
-// collected and sent to the current session's composer draft as structured
-// file-comment requests.
+// Registers a Markdown file viewer through The Better Sidebar.
 window.__ModuleLoader__.load({
   id: "dsh-md-annotator",
   factory: (require) => {
@@ -48,6 +48,7 @@ window.__ModuleLoader__.load({
     var exports = module.exports
     Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" })
     var React = require("react")
+    var ReactDOM = require("react-dom")
 `
 
 const TAIL = `    return module.exports
