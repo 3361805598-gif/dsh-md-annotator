@@ -8,7 +8,14 @@ async function test(name, run) { await run(); checks++; console.log('ok:', name)
 function remoteOf(content, size = 11) {
   const bytes = Buffer.from(content)
   return { workspaceFiles: {
-    readBytes: async (_session, _path, { offset }) => ({ ok: true, value: { absolutePath: '/w/a.md', version: 'v1', bytes: bytes.length, offset, data: bytes.subarray(offset, offset + size).toString('base64'), eof: offset + size >= bytes.length } }),
+    readBytes: async (_session, _path, options) => {
+      // DSH 0.2.x contract: options.range = { offset, length }; data is native bytes.
+      const range = options && options.range
+      const offset = range && Number.isInteger(range.offset) ? range.offset : 0
+      const window = range && Number.isInteger(range.length) ? range.length : size
+      const chunk = bytes.subarray(offset, offset + window)
+      return { ok: true, value: { absolutePath: '/w/a.md', version: 'v1', bytes: bytes.length, offset, data: new Uint8Array(chunk), eof: offset + chunk.length >= bytes.length } }
+    },
     stat: async () => ({ ok: true, value: { version: 'v1', absolutePath: '/w/a.md' } })
   } }
 }
@@ -66,17 +73,23 @@ await test('reject binary, invalid UTF-8, oversize and aborted reads', async () 
   await assert.rejects(T.readDocument(remoteOf('hello'), {}, abort.signal), e => e.name === 'AbortError')
 })
 await test('version mismatch retries once, never combines versions', async () => {
-  let starts = 0
-  const remote = remoteOf('ab', 1)
+  // The reader asks for 64 KiB windows, so the body must exceed one window before a
+  // mid-read version change is observable at all.
+  const body = 'x'.repeat(65536 * 2 + 5)
+  let windows = 0
+  const remote = remoteOf(body, 65536)
   const original = remote.workspaceFiles.readBytes
   remote.workspaceFiles.readBytes = async (...args) => {
-    if (args[2].offset === 0) starts++
+    windows++
     const got = await original(...args)
-    if (starts === 1 && args[2].offset > 0) got.value.version = 'v2'
+    const offset = args[2] && args[2].range ? args[2].range.offset : 0
+    // Second window of the first attempt reports a newer version: the reader must discard
+    // that whole attempt and start over instead of mixing two versions.
+    if (windows === 2 && offset > 0) got.value.version = 'v2'
     return got
   }
-  assert.equal((await T.readDocument(remote, {}, new AbortController().signal)).content, 'ab')
-  assert.equal(starts, 2)
+  assert.equal((await T.readDocument(remote, {}, new AbortController().signal)).content, body)
+  assert.ok(windows > 3, 'expected a retry after the version change, windows=' + String(windows))
   remote.workspaceFiles.stat = async () => ({ ok: true, value: { version: 'always-new' } })
   await assert.rejects(T.readDocument(remote, {}, new AbortController().signal), /变化/)
 })
